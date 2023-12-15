@@ -3,7 +3,7 @@ import { MyBlockchain, hash, verify } from "./node/blockchain";
 import { PreBlockchain } from "./node/types/Blocks";
 
 function writeBlock(pre: PreBlockchain<MyBlockchain>, previous: MyBlockchain) {
-    const newBlock:MyBlockchain = {
+    const newBlock: MyBlockchain = {
         data: {
             ...pre.data,
             previousBlockHash: hash(previous)
@@ -13,7 +13,7 @@ function writeBlock(pre: PreBlockchain<MyBlockchain>, previous: MyBlockchain) {
             previousBlock: previous
         }
     }
-    if(!verify(newBlock)) throw 'bad block'
+    if (!verify(newBlock)) throw 'bad block'
     return newBlock
 }
 
@@ -25,7 +25,8 @@ function recursiveWriteBlock(block: MyBlockchain) {
         try {
             newBlock = writeBlock({
                 data: {
-                    str
+                    str,
+                    created: new Date().getTime()
                 },
                 common: {}
             }, block);
@@ -44,6 +45,8 @@ function recursiveWriteBlock(block: MyBlockchain) {
 }
 
 recursiveWriteBlock({
-    data: {},
+    data: {
+        created: new Date().getTime()
+    },
     common: {}
 })
