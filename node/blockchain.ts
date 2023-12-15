@@ -2,7 +2,6 @@ import { sha512 } from "js-sha512";
 import { Hasher, Verifier } from "./types/BlockchainOperators";
 import { Blockchain } from "./types/Blocks";
 import { height } from "./BlockchainOperations";
-import { normalize } from "./common";
 
 export type MyBlockchain = Blockchain<{
     created: number,
@@ -21,13 +20,19 @@ const hashVerifier: Verifier<MyBlockchain> = block => {
 }
 
 const complexityVerifier: Verifier<MyBlockchain> = block => {
-    const TARGET_TIME = 5000
+    const TARGET_TIME = 100
 
     const age = new Date().getTime() - (block.common.previousBlock?.data.created || TARGET_TIME)
 
-    const simplicity = BigInt(`0x${'f'.repeat(128)}`) / (height(block) + 1n)
-        * BigInt(Math.floor(normalize(age, TARGET_TIME) * 10000)) / 10000n;
+    function timeFactor(x: number, transitionPoint: number = 5, steepness: number = 1): number {
+        const gaussian = Math.exp(-0.5 * Math.pow((x - transitionPoint) / steepness, 2));
+        const exponential = Math.exp(steepness * (x - transitionPoint));
+        const result = gaussian + exponential;
+        return result;
+    }
 
+    const simplicity = BigInt(`0x${'f'.repeat(128)}`) / (height(block) + 1n)
+        * BigInt(Math.min(Number.MAX_VALUE, Math.floor(timeFactor(age, TARGET_TIME) * 10000))) / 10000n;
 
     if (block.common.previousBlock) {
         return BigInt('0x' + hash(block)) < simplicity && complexityVerifier(block.common.previousBlock)
